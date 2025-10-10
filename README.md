@@ -130,6 +130,13 @@ rv = C_CloseSession(session);
 - DIGEST_ONESHOT
 - GET_ATTRIBUTE_VALUE
 
+###方案 B：标准精简版（21 个命令）
+适用场景： 常规商业应用，包含完整的密钥管理和常用操作
+= 方案 A (15个)
++ SESSION_INFO
++ LOGIN, LOGOUT
++ FIND_OBJECTS_INIT, FIND_OBJECTS, FIND_OBJECTS_FINAL
+
 ## 贡献指南
 
 欢迎提交 Issue 和 Pull Request！
