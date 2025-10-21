@@ -1087,9 +1087,8 @@ enum pkcs11_rc entry_set_attribute_value(struct pkcs11_client *client,
 	template_size = sizeof(*template) + template->attrs_size;
 
 	/*
-	 * Prepare a clean initial state (@head) for the template. Helps in
-	 * removing any duplicates or inconsistent values from the
-	 * template.
+	 * 为模板准备一个干净的初始状态（@head）。
+	 * 有助于从模板中删除任何重复或不一致的值。
 	 */
 	rc = create_attributes_from_template(&head, template, template_size,
 					     NULL, function,
@@ -1229,9 +1228,8 @@ enum pkcs11_rc entry_copy_object(struct pkcs11_client *client, uint32_t ptypes,
 	template_size = sizeof(*template) + template->attrs_size;
 
 	/*
-	 * Prepare a clean initial state (@head) for the template. Helps in
-	 * removing any duplicates or inconsistent values from the
-	 * template.
+	 * 为模板准备一个干净的初始状态（@head）。
+	 * 有助于从模板中删除任何重复或不一致的值。
 	 */
 	rc = create_attributes_from_template(&head, template, template_size,
 					     NULL, function,
@@ -1293,20 +1291,18 @@ enum pkcs11_rc entry_copy_object(struct pkcs11_client *client, uint32_t ptypes,
 		goto out;
 
 	/*
-	 * At this stage the object is almost created: all its attributes are
-	 * referenced in @head_new, including the key value and are assumed
-	 * reliable. Now need to register it and get a handle for it.
+	 * 在此阶段，对象几乎已创建：所有属性都在 @head_new 中引用，
+	 * 包括密钥值，并假定是可靠的。现在需要注册它并获取其句柄。
 	 */
 	rc = create_object(session, head_new, &obj_handle);
 	if (rc)
 		goto out;
 
 	/*
-	 * Now obj_handle (through the related struct pkcs11_object
-	 * instance) owns the serialized buffer that holds the object
-	 * attributes. We clear reference in head to NULL as the serializer
-	 * object is now referred from obj_handle. This allows smooth pass
-	 * through free at function exit.
+	 * 现在 obj_handle（通过相关的 struct pkcs11_object 实例）
+	 * 拥有保存对象属性的序列化缓冲区。我们将 head 中的引用清除为 NULL，
+	 * 因为序列化对象现在由 obj_handle 引用。
+	 * 这允许在函数退出时顺利地释放内存。
 	 */
 	head_new = NULL;
 

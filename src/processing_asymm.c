@@ -209,9 +209,9 @@ pkcs2tee_algorithm(uint32_t *tee_id, uint32_t *tee_hash_id,
 	}
 
 	/*
-	 * PKCS#11 uses single mechanism CKM_RSA_PKCS for both ciphering and
-	 * authentication whereas GPD TEE expects TEE_ALG_RSAES_PKCS1_V1_5 for
-	 * ciphering and TEE_ALG_RSASSA_PKCS1_V1_5 for authentication.
+	 * PKCS#11对加密和认证都使用单一机制CKM_RSA_PKCS，
+	 * 而GPD TEE加密需要TEE_ALG_RSAES_PKCS1_V1_5，
+	 * 认证需要TEE_ALG_RSASSA_PKCS1_V1_5。
 	 */
 	if (*tee_id == TEE_ALG_RSAES_PKCS1_V1_5 &&
 	    (function == PKCS11_FUNCTION_SIGN ||
@@ -292,9 +292,9 @@ allocate_tee_operation(struct pkcs11_session *session,
 		return PKCS11_CKR_FUNCTION_FAILED;
 
 	/*
-	 * PKCS#11 allows Sign/Verify with CKM_RSA_X_509 while GP TEE API
-	 * only permits Encrypt/Decrypt with TEE_ALG_RSA_NOPAD.
-	 * For other algorithm, use simple 1-to-1 ID conversion pkcs2tee_mode().
+	 * PKCS#11允许使用CKM_RSA_X_509进行签名/验证，而GP TEE API
+	 * 仅允许使用TEE_ALG_RSA_NOPAD进行加密/解密。
+	 * 对于其他算法，使用简单的1对1 ID转换pkcs2tee_mode()。
 	 */
 	if (params->id == PKCS11_CKM_RSA_X_509) {
 		assert(!hash_algo);
@@ -374,7 +374,7 @@ static enum pkcs11_rc load_tee_key(struct pkcs11_session *session,
 				class == PKCS11_CKO_PRIVATE_KEY));
 			goto key_ready;
 		case PKCS11_CKK_EC:
-			/* Reuse EC TEE key only if already DSA or DH */
+			/* 仅当已经是DSA或DH时才重用EC TEE密钥 */
 			switch (obj->key_type) {
 			case TEE_TYPE_ECDSA_PUBLIC_KEY:
 			case TEE_TYPE_ECDSA_KEYPAIR:
@@ -526,13 +526,13 @@ enum pkcs11_rc init_asymm_operation(struct pkcs11_session *session,
 }
 
 /*
- * step_sym_step - step (update/oneshot/final) on a symmetric crypto operation
+ * step_asymm_operation - 非对称密码操作的执行步骤（update/oneshot/final）
  *
- * @session - current session
- * @function - processing function (encrypt, decrypt, sign, ...)
- * @step - step ID in the processing (oneshot, update, final)
- * @ptypes - invocation parameter types
- * @params - invocation parameter references
+ * @session - 当前会话
+ * @function - 处理功能（加密、解密、签名等）
+ * @step - 处理步骤ID（一次性、更新、最终）
+ * @ptypes - 调用参数类型
+ * @params - 调用参数引用
  */
 enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 				    enum processing_func function,
@@ -591,7 +591,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 		return PKCS11_CKR_GENERAL_ERROR;
 	}
 
-	/* TEE attribute(s) required by the operation */
+	/* 操作所需的TEE属性 */
 	switch (proc->mecha_type) {
 	case PKCS11_CKM_RSA_PKCS_PSS:
 	case PKCS11_CKM_SHA1_RSA_PKCS_PSS:
@@ -679,8 +679,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 	}
 
 	/*
-	 * Handle multi stage update step for mechas needing hash
-	 * calculation
+	 * 处理需要哈希计算的机制的多阶段更新步骤
 	 */
 	if (step == PKCS11_FUNC_STEP_UPDATE) {
 		switch (proc->mecha_type) {
@@ -707,8 +706,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 			break;
 		default:
 			/*
-			 * Other mechanism do not expect multi stage
-			 * operation
+			 * 其他机制不支持多阶段操作
 			 */
 			rc = PKCS11_CKR_GENERAL_ERROR;
 			break;
@@ -718,8 +716,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 	}
 
 	/*
-	 * Handle multi stage one shot and final steps for mechas needing hash
-	 * calculation
+	 * 处理需要哈希计算的机制的多阶段一次性和最终步骤
 	 */
 	switch (proc->mecha_type) {
 	case PKCS11_CKM_ECDSA_SHA1:
@@ -758,11 +755,10 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 	}
 
 	/*
-	 * Finalize either provided hash or calculated hash with signing
-	 * operation
+	 * 使用提供的哈希或计算的哈希完成签名操作
 	 */
 
-	/* First determine amount of bytes for signing operation */
+	/* 首先确定签名操作所需的字节数 */
 	switch (proc->mecha_type) {
 	case PKCS11_CKM_ECDSA:
 		sz = ecdsa_get_input_max_byte_size(proc->tee_op_handle);
@@ -772,8 +768,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 		}
 
 		/*
-		 * Note 3) Input the entire raw digest. Internally, this will
-		 * be truncated to the appropriate number of bits.
+		 * 注意3）输入完整的原始摘要。内部会将其截断为适当的位数。
 		 */
 		if (in_size > sz)
 			in_size = sz;
@@ -788,7 +783,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 	case PKCS11_CKM_ECDSA_SHA256:
 	case PKCS11_CKM_ECDSA_SHA384:
 	case PKCS11_CKM_ECDSA_SHA512:
-		/* Get key size in bytes */
+		/* 获取密钥大小（字节） */
 		sz = ecdsa_get_input_max_byte_size(proc->tee_op_handle);
 		if (!sz) {
 			rc = PKCS11_CKR_FUNCTION_FAILED;
@@ -815,7 +810,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 	case PKCS11_CKM_SHA256_RSA_PKCS_PSS:
 	case PKCS11_CKM_SHA384_RSA_PKCS_PSS:
 	case PKCS11_CKM_SHA512_RSA_PKCS_PSS:
-		/* Get key size in bytes */
+		/* 获取密钥大小（字节） */
 		sz = rsa_get_input_max_byte_size(proc->tee_op_handle);
 		if (!sz) {
 			rc = PKCS11_CKR_FUNCTION_FAILED;
@@ -831,14 +826,14 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 		break;
 	}
 
-	/* Next perform actual signing operation */
+	/* 接下来执行实际的签名操作 */
 	switch (proc->mecha_type) {
 	case PKCS11_CKM_ECDSA:
 	case PKCS11_CKM_EDDSA:
 	case PKCS11_CKM_RSA_PKCS:
 	case PKCS11_CKM_RSA_PKCS_OAEP:
 	case PKCS11_CKM_RSA_PKCS_PSS:
-		/* For operations using provided input data */
+		/* 对于使用提供输入数据的操作 */
 		switch (function) {
 		case PKCS11_FUNCTION_ENCRYPT:
 			res = TEE_AsymmetricEncrypt(proc->tee_op_handle,
@@ -891,10 +886,9 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 		switch (function) {
 		case PKCS11_FUNCTION_ENCRYPT:
 			/*
-			 * Input message size shall be at most the key size
-			 * As encrypting with raw RSA can be unsafe, it
-			 * remains the responsibility of the client to
-			 * prolerly pad the message for safe usage.
+			 * 输入消息大小最多为密钥大小
+			 * 由于使用原始RSA加密可能不安全，因此
+			 * 客户端有责任正确填充消息以安全使用。
 			 */
 			if (in_size > sz) {
 				rc = PKCS11_CKR_DATA_LEN_RANGE;
@@ -911,10 +905,9 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 			break;
 		case PKCS11_FUNCTION_DECRYPT:
 			/*
-			 * Input message size shall be at most the key size
-			 * As decrypting with raw RSA can be unsafe, it
-			 * remains the responsibility of the encryption
-			 * instance to have prolerly padded its message.
+			 * 输入消息大小最多为密钥大小
+			 * 由于使用原始RSA解密可能不安全，因此
+			 * 加密实例有责任正确填充其消息。
 			 */
 			if (in_size > sz) {
 				rc = PKCS11_CKR_ENCRYPTED_DATA_LEN_RANGE;
@@ -932,13 +925,11 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 			break;
 		case PKCS11_FUNCTION_SIGN:
 			/*
-			 * GP TEE API only allows Decrypt, not Verify operation,
-			 * on TEE_ALG_RSA_NOPAD. Be a bit strict on the size and
-			 * content of the message and ensure the generate
-			 * signature as the size of the modulus (@sz here).
+			 * GP TEE API只允许对TEE_ALG_RSA_NOPAD进行解密，不允许验证操作。
+			 * 对消息的大小和内容要严格一些，并确保生成的
+			 * 签名与模数大小相同（这里是@sz）。
 			 *
-			 * It remains the responsibility of the client to have
-			 * a safe padding scheme for the provided message data.
+			 * 客户端有责任为提供的消息数据采用安全的填充方案。
 			 */
 			if (in_size != sz) {
 				EMSG("Invalid data size %"PRIu32" != %zu",
@@ -976,9 +967,8 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 			break;
 		case PKCS11_FUNCTION_VERIFY:
 			/*
-			 * GP TEE API only allows Encrypt, not Verify operation,
-			 * on TEE_ALG_RSA_NOPAD. Encrypt signature in
-			 * temporary buffer preallocated to the size of the key.
+			 * GP TEE API只允许对TEE_ALG_RSA_NOPAD进行加密，不允许验证操作。
+			 * 在预分配为密钥大小的临时缓冲区中加密签名。
 			 */
 			temp_size = sz;
 			temp_buf = proc->extra_ctx;
@@ -989,8 +979,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 			rc = tee2pkcs_error(res);
 			if (rc == PKCS11_CKR_OK) {
 				/*
-				 * Skip nul bytes heading message before
-				 * comparing encrypted signature.
+				 * 在比较加密签名之前跳过消息开头的空字节。
 				 */
 				char *ptr = in_buf;
 				size_t n = 0;
@@ -1031,7 +1020,7 @@ enum pkcs11_rc step_asymm_operation(struct pkcs11_session *session,
 	case PKCS11_CKM_SHA256_RSA_PKCS_PSS:
 	case PKCS11_CKM_SHA384_RSA_PKCS_PSS:
 	case PKCS11_CKM_SHA512_RSA_PKCS_PSS:
-		/* For operations having hash operation use calculated hash */
+		/* 对于具有哈希操作的操作，使用计算的哈希 */
 		switch (function) {
 		case PKCS11_FUNCTION_SIGN:
 			res = TEE_AsymmetricSignDigest(proc->tee_op_handle,
@@ -1096,7 +1085,7 @@ enum pkcs11_rc do_asymm_derivation(struct pkcs11_session *session,
 	void *a_ptr = NULL;
 	size_t a_size = 0;
 
-	/* Remove default attribute set at template sanitization */
+	/* 移除模板清理时设置的默认属性 */
 	if (remove_empty_attribute(head, PKCS11_CKA_VALUE))
 		return PKCS11_CKR_FUNCTION_FAILED;
 

@@ -655,8 +655,8 @@ out:
 }
 
 /*
- * Return the token instance, either initialized from reset or initialized
- * from the token persistent state if found.
+ * 返回令牌实例，可以是从重置初始化的，
+ * 也可以是从令牌持久化状态初始化的（如果找到）。
  */
 struct ck_token *init_persistent_db(unsigned int token_id)
 {
@@ -749,13 +749,10 @@ struct ck_token *init_persistent_db(unsigned int token_id)
 			TEE_Panic(0);
 
 		/*
-		 * Object stores persistent state + persistent object
-		 * references.
+		 * 对象存储持久化状态 + 持久化对象引用。
 		 *
-		 * Allocate the initial_data buffer to encompass the data from
-		 * both db_main and db_objs. Since the initial data for the
-		 * objects will be zeroed out upon creation, there’s no need
-		 * to copy it from db_objs.
+		 * 分配 initial_data 缓冲区以包含来自 db_main 和 db_objs 的数据。
+		 * 由于对象的初始数据在创建时会被清零，因此不需要从 db_objs 复制它。
 		 */
 		initial_data_size = sizeof(*db_main) + sizeof(*db_objs);
 		initial_data = TEE_Malloc(initial_data_size,

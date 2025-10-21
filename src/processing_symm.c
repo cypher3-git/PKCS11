@@ -265,7 +265,7 @@ allocate_tee_operation(struct pkcs11_session *session,
 	if (pkcs2tee_algorithm(&algo, params))
 		return PKCS11_CKR_FUNCTION_FAILED;
 
-	/* 使用 AES 或通用密钥进行签名/验签，对应 TEE MAC 操作 */
+	/* 使用AES或通用密钥进行签名/验签，对应TEE MAC操作 */
 	switch (params->id) {
 	case PKCS11_CKM_MD5_HMAC:
 	case PKCS11_CKM_SHA_1_HMAC:
@@ -285,13 +285,11 @@ allocate_tee_operation(struct pkcs11_session *session,
 			return PKCS11_CKR_KEY_SIZE_RANGE;
 
 		/*
-		 * If size of generic key is greater than the size
-		 * supported by TEE API, this is not considered an
-		 * error. When loading TEE key, we will hash the key
-		 * to generate the appropriate key for HMAC operation.
-		 * This key size will not be greater than the
-		 * max_key_size. So we can use max_key_size for
-		 * TEE_AllocateOperation().
+		 * 如果通用密钥的大小大于TEE API支持的大小，
+		 * 这不被认为是错误。在加载TEE密钥时，我们将对密钥进行哈希
+		 * 以生成适合HMAC操作的密钥。
+		 * 此密钥大小不会大于max_key_size。因此我们可以使用
+		 * max_key_size进行TEE_AllocateOperation()。
 		 */
 		if (key_size > max_key_size)
 			size = max_key_size * 8;
@@ -318,12 +316,11 @@ allocate_tee_operation(struct pkcs11_session *session,
 
 	if (res == TEE_SUCCESS || params->id == PKCS11_CKM_AES_GCM) {
 		/*
-		 * Allocate a 2nd operation handler to save the operation state
-		 * on AES GCM one-shot processing that queries the output
-		 * buffer size. This is needed as we will need to reset and
-		 * re-init the TEE operation once we report the expected output
-		 * buffer size to client that we call again the AE processing
-		 * function.
+		 * 分配第二个操作句柄来保存AES GCM一次性处理中
+		 * 查询输出缓冲区大小时的操作状态。这是必需的，
+		 * 因为一旦我们向客户端报告预期的输出缓冲区大小，
+		 * 我们需要重置并重新初始化TEE操作，然后再次调用
+		 * AE处理函数。
 		 */
 		TEE_OperationHandle *hdl = &session->processing->tee_op_handle2;
 
@@ -383,7 +380,7 @@ static enum pkcs11_rc load_tee_key(struct pkcs11_session *session,
 	uint32_t min_key_size = 0;
 
 	if (obj->key_handle != TEE_HANDLE_NULL) {
-		/* Key was already loaded and fits current need */
+		/* 密钥已经加载且满足当前需求 */
 		goto key_ready;
 	}
 
@@ -406,9 +403,8 @@ static enum pkcs11_rc load_tee_key(struct pkcs11_session *session,
 	case PKCS11_CKM_SHA512_HMAC_GENERAL:
 		key_type = get_key_type(obj->attributes);
 		/*
-		 * If Object Key type is PKCS11_CKK_GENERIC_SECRET,
-		 * determine the tee_key_type using the
-		 * mechanism instead of object key_type.
+		 * 如果对象密钥类型是PKCS11_CKK_GENERIC_SECRET，
+		 * 则使用机制而不是对象密钥类型来确定tee_key_type。
 		 */
 		if (key_type == PKCS11_CKK_GENERIC_SECRET)
 			rc = pkcsmech2tee_key_type(&tee_key_type,
@@ -703,7 +699,7 @@ enum pkcs11_rc init_symm_operation(struct pkcs11_session *session,
 	return rc;
 }
 
-/* Validate input buffer size as per PKCS#11 constraints */
+/* 根据PKCS#11约束验证输入缓冲区大小 */
 static enum pkcs11_rc input_data_size_is_valid(struct active_processing *proc,
 					       enum processing_func function,
 					       size_t in_size)
@@ -733,7 +729,7 @@ static enum pkcs11_rc input_data_size_is_valid(struct active_processing *proc,
 	return PKCS11_CKR_OK;
 }
 
-/* Validate input buffer size as per PKCS#11 constraints */
+/* 根据PKCS#11约束验证输入缓冲区大小 */
 static enum pkcs11_rc input_sign_size_is_valid(struct active_processing *proc,
 					       size_t in_size)
 {
@@ -772,13 +768,13 @@ static enum pkcs11_rc input_sign_size_is_valid(struct active_processing *proc,
 }
 
 /*
- * step_sym_cipher - processing symmetric (and related) cipher operation step
+ * step_symm_operation - 处理对称（及相关）密码操作步骤
  *
- * @session - current session
- * @function - processing function (encrypt, decrypt, sign, ...)
- * @step - step ID in the processing (oneshot, update, final)
- * @ptype - invocation parameter types
- * @params - invocation parameter references
+ * @session - 当前会话
+ * @function - 处理功能（加密、解密、签名等）
+ * @step - 处理步骤ID（一次性、更新、最终）
+ * @ptype - 调用参数类型
+ * @params - 调用参数引用
  */
 enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 				   enum processing_func function,
@@ -838,7 +834,7 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 	}
 
 	/*
-	 * Feed active operation with data
+	 * 向活动操作提供数据
 	 */
 	switch (proc->mecha_type) {
 	case PKCS11_CKM_AES_CMAC:
@@ -918,12 +914,12 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 				return rc;
 			if (step == PKCS11_FUNC_STEP_ONESHOT) {
 				if (rc == PKCS11_CKR_BUFFER_TOO_SMALL) {
-					/* Return output data size incl. tag*/
+					/* 返回包含标签的输出数据大小 */
 					out_size += 16;
 					goto out;
 				}
 				out_buf = (char *)out_buf + out_size;
-				/* Remaining space for the tag data */
+				/* 标签数据的剩余空间 */
 				ae_out_size -= out_size;
 			}
 			break;
@@ -932,7 +928,7 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 			assert(rc != PKCS11_CKR_BUFFER_TOO_SMALL);
 			if (rc)
 				return rc;
-			/* Do not output decrypted data until tag is verified */
+			/* 在验证标签之前不输出解密数据 */
 			out_size = 0;
 			output_data = true;
 			break;
@@ -950,7 +946,7 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 		goto out;
 
 	/*
-	 * Finalize (PKCS11_FUNC_STEP_ONESHOT/_FINAL) operation
+	 * 完成（PKCS11_FUNC_STEP_ONESHOT/_FINAL）操作
 	 */
 	switch (proc->mecha_type) {
 	case PKCS11_CKM_AES_CMAC:
@@ -996,30 +992,30 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 
 		switch (function) {
 		case PKCS11_FUNCTION_SIGN:
-			if (out_size < hmac_len) {
-				/* inform client of required size */
-				out_size = hmac_len;
-				output_data = true;
-				rc = PKCS11_CKR_BUFFER_TOO_SMALL;
-				goto out;
-			}
+		if (out_size < hmac_len) {
+			/* 通知客户端所需的大小 */
+			out_size = hmac_len;
+			output_data = true;
+			rc = PKCS11_CKR_BUFFER_TOO_SMALL;
+			goto out;
+		}
 
 			res = TEE_MACComputeFinal(proc->tee_op_handle,
 						  in_buf, in_size,
 						  computed_mac,
 						  &computed_mac_size);
-			if (res == TEE_SUCCESS) {
-				/* truncate to hmac_len */
-				TEE_MemMove(out_buf, computed_mac, hmac_len);
-				output_data = true;
-			}
+		if (res == TEE_SUCCESS) {
+			/* 截断为hmac_len */
+			TEE_MemMove(out_buf, computed_mac, hmac_len);
+			output_data = true;
+		}
 
-			/* inform client of required size */
+		/* 通知客户端所需的大小 */
 			out_size = hmac_len;
 			rc = tee2pkcs_error(res);
 			break;
 		case PKCS11_FUNCTION_VERIFY:
-			/* must compute full MAC before comparing partial */
+			/* 在比较部分MAC之前必须计算完整MAC */
 			res = TEE_MACComputeFinal(proc->tee_op_handle, in_buf,
 						  in_size, computed_mac,
 						  &computed_mac_size);
@@ -1030,17 +1026,15 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 				return PKCS11_CKR_SIGNATURE_LEN_RANGE;
 			}
 
-			if (res == TEE_SUCCESS) {
-				/*
-				 * Only the first in2_size bytes of the
-				 * signature to be verified is passed in from
-				 * caller
-				 */
-				if (TEE_MemCompare(in2_buf, computed_mac,
-						   in2_size)) {
-					res = TEE_ERROR_MAC_INVALID;
-				}
+		if (res == TEE_SUCCESS) {
+			/*
+			 * 调用者只传入了要验证的签名的前in2_size字节
+			 */
+			if (TEE_MemCompare(in2_buf, computed_mac,
+					   in2_size)) {
+				res = TEE_ERROR_MAC_INVALID;
 			}
+		}
 
 			rc = tee2pkcs_error(res);
 			break;
@@ -1086,7 +1080,7 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 				out_size = ae_out_size;
 			break;
 		case PKCS11_FUNCTION_DECRYPT:
-			/* Now we're ready to reveal data */
+			/* 现在我们准备好输出数据 */
 			out_size = ae_out_size;
 			rc = tee_ae_decrypt_final(session, out_buf, &out_size);
 			output_data = true;
@@ -1101,10 +1095,9 @@ enum pkcs11_rc step_symm_operation(struct pkcs11_session *session,
 			enum pkcs11_rc rc2 = PKCS11_CKR_OK;
 
 			/*
-			 * Change operation state to its initial state
-			 * as client will likely request again the
-			 * one-shot processing but possibly with
-			 * different input data.
+			 * 将操作状态更改为初始状态，
+			 * 因为客户端可能会再次请求一次性处理，
+			 * 但可能使用不同的输入数据。
 			 */
 			rc2 = tee_ae_reinit_gcm_operation(session);
 			if (rc2)

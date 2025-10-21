@@ -132,12 +132,10 @@ enum pkcs11_rc pkcs2tee_validate_rsa_pss(struct active_processing *proc,
 	modulus_size = get_object_key_bit_size(obj);
 
 	/**
-	 * The sLen field must be less than or equal to k*-2-hLen where
-	 * hLen is the length in bytes of the hash value. k* is the
-	 * length in bytes of the RSA modulus, except if the length in
-	 * bits of the RSA modulus is one more than a multiple of 8, in
-	 * which case k* is one less than the length in bytes of the
-	 * RSA modulus.
+	 * sLen字段必须小于或等于k*-2-hLen，其中
+	 * hLen是哈希值的字节长度。k*是RSA模数的字节长度，
+	 * 但如果RSA模数的位长度比8的倍数多1，
+	 * 则k*比RSA模数的字节长度少1。
 	 */
 	if ((modulus_size % 8) == 1)
 		k = modulus_size / 8;
@@ -151,9 +149,9 @@ enum pkcs11_rc pkcs2tee_validate_rsa_pss(struct active_processing *proc,
 }
 
 /*
- * Check or set TEE algorithm identifier upon PKCS11 mechanism parameters
- * @tee_id: Input and/or output TEE algorithm identifier
- * @proc_params: PKCS11 processing parameters
+ * 根据PKCS11机制参数检查或设置TEE算法标识符
+ * @tee_id: 输入和/或输出TEE算法标识符
+ * @proc_params: PKCS11处理参数
  */
 enum pkcs11_rc pkcs2tee_algo_rsa_pss(uint32_t *tee_id,
 				     struct pkcs11_attribute_head *proc_params)
@@ -355,10 +353,10 @@ pkcs2tee_proc_params_rsa_aes_wrap(struct active_processing *proc,
 }
 
 /*
- * Set TEE RSA OAEP algorithm identifier upon PKCS11 mechanism parameters
- * @tee_id: output TEE RSA OAEP algorithm identifier
- * @tee_hash_id: output TEE hash algorithm identifier
- * @proc_params: PKCS11 processing parameters
+ * 根据PKCS11机制参数设置TEE RSA OAEP算法标识符
+ * @tee_id: 输出TEE RSA OAEP算法标识符  
+ * @tee_hash_id: 输出TEE哈希算法标识符
+ * @proc_params: PKCS11处理参数
  */
 enum pkcs11_rc
 pkcs2tee_algo_rsa_oaep(uint32_t *tee_id, uint32_t *tee_hash_id,

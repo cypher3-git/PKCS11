@@ -101,12 +101,12 @@ struct out_data_ref {
 };
 
 /*
- * struct ae_aes_context - Extra context data got AE operations
- * @tag_byte_len - Tag size in byte
- * @pending_tag - Input data that could be the appended tag
- * @pending_size - Size of pending input data that could be the tag
- * @out_data - Pointer to an array of output data references.
- * @out_count - Number of buffer references in out_data
+ * struct ae_aes_context - AE 操作的额外上下文数据
+ * @tag_byte_len - 标签大小（字节）
+ * @pending_tag - 可能是附加标签的输入数据
+ * @pending_size - 可能是标签的待处理输入数据大小
+ * @out_data - 指向输出数据引用数组的指针
+ * @out_count - out_data 中缓冲区引用的数量
  */
 struct ae_aes_context {
 	size_t tag_byte_len;
@@ -156,15 +156,14 @@ static void release_ae_aes_context(struct ae_aes_context *ctx)
 }
 
 /*
- * This function feeds the AE decryption processing with client
- * input data. There are 2 constraints to consider.
+ * 此函数向 AE 解密处理提供客户端输入数据。需要考虑 2 个约束。
  *
- * Firstly we don't know yet which are the ciphered data and which are
- * the tag data. GP TEE Internal API function requires we split data and
- * tag when TEE_AEDecryptFinal() will be called.
+ * 首先，我们还不知道哪些是密文数据，哪些是标签数据。
+ * GP TEE 内部 API 函数要求在调用 TEE_AEDecryptFinal() 时
+ * 分离数据和标签。
  *
- * Secondly any generated data must be kept in the TA and only revealed
- * once tag if succefully processed.
+ * 其次，任何生成的数据都必须保存在 TA 中，只有在标签
+ * 成功处理后才能显示。
  */
 enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 				     void *in, size_t in_size)
@@ -184,15 +183,15 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 		return PKCS11_CKR_ARGUMENTS_BAD;
 
 	/*
-	 * Save the last input bytes in case they are the tag
-	 * bytes and not ciphered data bytes to be decrypted.
+	 * 保存最后的输入字节，以防它们是标签字节
+	 * 而不是要解密的密文数据字节。
 	 */
 
 	if (ctx->pending_size + in_size <= ctx->tag_byte_len) {
 		/*
-		 * Data bytes are all potential tag bytes.
-		 * We only need to update the pending_tag buffer,
-		 * and cannot treat any byte as data byte.
+		 * 数据字节都是潜在的标签字节。
+		 * 我们只需要更新 pending_tag 缓冲区，
+		 * 不能将任何字节视为数据字节。
 		 */
 		TEE_MemMove(ctx->pending_tag + ctx->pending_size, in, in_size);
 
@@ -201,10 +200,10 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 		return PKCS11_CKR_OK;
 	}
 
-	/* Size of data that are not potential tag in pending and input data */
+	/* 待处理和输入数据中非潜在标签的数据大小 */
 	data_len = in_size + ctx->pending_size - ctx->tag_byte_len;
 
-	/* Process pending bytes that are effective data byte */
+	/* 处理有效数据字节的待处理字节 */
 	if (ctx->pending_size &&
 	    (ctx->pending_size + in_size) >= ctx->tag_byte_len) {
 		uint32_t len = MIN(data_len, ctx->pending_size);
@@ -218,8 +217,8 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 		assert(res == TEE_ERROR_SHORT_BUFFER || !ct_size);
 
 		/*
-		 * If output data to store (not revealed yet), redo with
-		 * an allocated temporary reference.
+		 * 如果有输出数据要存储（尚未显示），
+		 * 使用分配的临时引用重做。
 		 */
 		if (ct_size) {
 			ct = TEE_Malloc(ct_size, TEE_MALLOC_FILL_ZERO);
@@ -237,7 +236,7 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 			assert(ct_size);
 		}
 
-		/* Save potential tag bytes for later */
+		/* 保存潜在的标签字节供后续使用 */
 		TEE_MemMove(ctx->pending_tag, ctx->pending_tag + len,
 			    ctx->pending_size - len);
 
@@ -245,7 +244,7 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 		data_len -= len;
 	}
 
-	/* Process input data that are not potential tag bytes */
+	/* 处理非潜在标签字节的输入数据 */
 	if (data_len) {
 		size_t size = 0;
 
@@ -253,7 +252,7 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 				   in, data_len, NULL, &size);
 		if (res != TEE_ERROR_SHORT_BUFFER &&
 		    (res != TEE_SUCCESS || size)) {
-			/* This is not expected */
+			/* 这是不期望的情况 */
 			rc = PKCS11_CKR_GENERAL_ERROR;
 			goto out;
 		}
@@ -277,10 +276,10 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 		}
 	}
 
-	/* Update pending tag in context if any */
+	/* 如果有的话，更新上下文中的待处理标签 */
 	data_len = in_size - data_len;
 	if (data_len > (ctx->tag_byte_len - ctx->pending_size)) {
-		/* This is not expected */
+		/* 这是不期望的情况 */
 		rc = PKCS11_CKR_GENERAL_ERROR;
 		goto out;
 	}
@@ -292,7 +291,7 @@ enum pkcs11_rc tee_ae_decrypt_update(struct pkcs11_session *session,
 		ctx->pending_size += data_len;
 	}
 
-	/* Save output data reference in the context */
+	/* 在上下文中保存输出数据引用 */
 	if (ct_size) {
 		ptr = TEE_Realloc(ctx->out_data, (ctx->out_count + 1) *
 				  sizeof(struct out_data_ref));
@@ -360,7 +359,7 @@ enum pkcs11_rc tee_ae_decrypt_final(struct pkcs11_session *session,
 		return PKCS11_CKR_ARGUMENTS_BAD;
 	}
 
-	/* Final is already completed, only need to output the data */
+	/* Final 已经完成，只需要输出数据 */
 	if (!ctx->pending_tag)
 		return reveal_ae_data(ctx, out, out_size);
 
@@ -370,7 +369,7 @@ enum pkcs11_rc tee_ae_decrypt_final(struct pkcs11_session *session,
 		return PKCS11_CKR_ENCRYPTED_DATA_LEN_RANGE;
 	}
 
-	/* Query tag size if any */
+	/* 如果有的话，查询标签大小 */
 	data_size = 0;
 	res = TEE_AEDecryptFinal(session->processing->tee_op_handle,
 				 NULL, 0, NULL, &data_size,
@@ -389,7 +388,7 @@ enum pkcs11_rc tee_ae_decrypt_final(struct pkcs11_session *session,
 		assert(res || data_size);
 	}
 
-	/* AE decryption is completed */
+	/* AE 解密已完成 */
 	TEE_Free(ctx->pending_tag);
 	ctx->pending_tag = NULL;
 
@@ -434,7 +433,7 @@ enum pkcs11_rc tee_ae_encrypt_final(struct pkcs11_session *session,
 	if (!out || !out_size)
 		return PKCS11_CKR_ARGUMENTS_BAD;
 
-	/* Check the required sizes (warning: 2 output len: data + tag) */
+	/* 检查所需大小（警告：2 个输出长度：数据 + 标签）*/
 	res = TEE_AEEncryptFinal(session->processing->tee_op_handle,
 				 NULL, 0, NULL, &size,
 				 &tag, &tag_len);
@@ -451,7 +450,7 @@ enum pkcs11_rc tee_ae_encrypt_final(struct pkcs11_session *session,
 		return PKCS11_CKR_BUFFER_TOO_SMALL;
 	}
 
-	/* Process data and tag input the client output buffer */
+	/* 处理数据和标签输入到客户端输出缓冲区 */
 	tag = (uint8_t *)out + size;
 
 	res = TEE_AEEncryptFinal(session->processing->tee_op_handle,
@@ -473,7 +472,7 @@ enum pkcs11_rc tee_init_ctr_operation(struct active_processing *processing,
 {
 	struct serialargs args = { };
 	enum pkcs11_rc rc = PKCS11_CKR_OK;
-	/* CTR parameters */
+	/* CTR 参数 */
 	uint32_t incr_counter = 0;
 	void *counter_bits = NULL;
 
@@ -511,7 +510,7 @@ enum pkcs11_rc tee_init_gcm_operation(struct pkcs11_session *session,
 	struct ae_aes_context *params = NULL;
 	enum pkcs11_rc rc = PKCS11_CKR_OK;
 	struct serialargs args = { };
-	/* GCM parameters */
+	/* GCM 参数 */
 	uint32_t tag_bitlen = 0;
 	uint32_t tag_len = 0;
 	uint32_t iv_len = 0;
@@ -548,7 +547,7 @@ enum pkcs11_rc tee_init_gcm_operation(struct pkcs11_session *session,
 
 	tag_len = ROUNDUP_DIV(tag_bitlen, 8);
 
-	/* As per pkcs#11 mechanism specification */
+	/* 根据 PKCS#11 机制规范 */
 	if (tag_bitlen > 128 || !iv_len || iv_len > 256) {
 		DMSG("Invalid parameters: tag_bit_len %"PRIu32
 		     ", iv_len %"PRIu32, tag_bitlen, iv_len);
@@ -562,13 +561,13 @@ enum pkcs11_rc tee_init_gcm_operation(struct pkcs11_session *session,
 		goto out;
 	}
 
-	/* Store the byte round up byte length for the tag */
+	/* 存储标签的字节向上舍入字节长度 */
 	params->tag_byte_len = tag_len;
 	rc = init_ae_aes_context(params);
 	if (rc)
 		goto out;
 
-	/* Session processing owns the active processing params */
+	/* 会话处理拥有活动处理参数 */
 	assert(!session->processing->extra_ctx);
 	session->processing->extra_ctx = params;
 
@@ -580,8 +579,8 @@ enum pkcs11_rc tee_init_gcm_operation(struct pkcs11_session *session,
 				aad, aad_len);
 
 	/*
-	 * Save initialized operation state to reset to this state
-	 * on one-shot AE request that queries its output buffer size.
+	 * 保存初始化的操作状态，以便在查询输出缓冲区大小的
+	 * 一次性 AE 请求时重置到此状态。
 	 */
 	TEE_CopyOperation(session->processing->tee_op_handle2,
 			  session->processing->tee_op_handle);
@@ -597,7 +596,7 @@ out:
 	return rc;
 }
 
-/* Release extra resources related to the GCM processing*/
+/* 释放与 GCM 处理相关的额外资源 */
 void tee_release_gcm_operation(struct pkcs11_session *session)
 {
 	struct ae_aes_context *ctx = session->processing->extra_ctx;
@@ -607,7 +606,7 @@ void tee_release_gcm_operation(struct pkcs11_session *session)
 	session->processing->extra_ctx = NULL;
 }
 
-/* Reset processing state to the state it was after initialization */
+/* 将处理状态重置为初始化后的状态 */
 enum pkcs11_rc tee_ae_reinit_gcm_operation(struct pkcs11_session *session)
 {
 	struct ae_aes_context *ctx = session->processing->extra_ctx;

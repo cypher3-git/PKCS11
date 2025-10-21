@@ -355,14 +355,13 @@ enum pkcs11_rc entry_generate_secret(struct pkcs11_client *client,
 		goto out;
 
 	/*
-	 * Execute target processing and add value as attribute
-	 * PKCS11_CKA_VALUE. Symm key generation: depends on target
-	 * processing to be used.
+	 * 执行目标处理并将值作为PKCS11_CKA_VALUE属性添加。
+	 * 对称密钥生成：取决于要使用的目标处理。
 	 */
 	switch (proc_params->id) {
 	case PKCS11_CKM_GENERIC_SECRET_KEY_GEN:
 	case PKCS11_CKM_AES_KEY_GEN:
-		/* 生成由属性 VALUE_LEN 指定大小的随机数 */
+		/* 生成由属性VALUE_LEN指定大小的随机数 */
 		rc = generate_random_key_value(&head);
 		if (rc)
 			goto out;
@@ -377,17 +376,17 @@ enum pkcs11_rc entry_generate_secret(struct pkcs11_client *client,
 	proc_params = NULL;
 
 	/*
-	 * Object is ready, register it and return a handle.
+	 * 对象已准备就绪，注册它并返回句柄。
 	 */
 	rc = create_object(session, head, &obj_handle);
 	if (rc)
 		goto out;
 
 	/*
-	 * Now obj_handle (through the related struct pkcs11_object instance)
-	 * owns the serialized buffer that holds the object attributes.
-	 * We reset head to NULL as it is no more the buffer owner and would
-	 * be freed at function out.
+	 * 现在obj_handle（通过相关的struct pkcs11_object实例）
+	 * 拥有保存对象属性的序列化缓冲区。
+	 * 我们将head重置为NULL，因为它不再是缓冲区所有者，
+	 * 并将在函数退出时被释放。
 	 */
 	head = NULL;
 
@@ -544,12 +543,12 @@ enum pkcs11_rc entry_generate_key_pair(struct pkcs11_client *client,
 	TEE_Free(priv_template);
 	priv_template = NULL;
 
-	/* 如果模板未指定，则为密钥生成 CKA_ID */
+	/* 如果模板未指定，则为密钥生成CKA_ID */
 	rc = add_missing_attribute_id(&pub_head, &priv_head);
 	if (rc)
 		goto out;
 
-	/* Check created object against processing and token state */
+	/* 检查创建的对象与处理和令牌状态 */
 	rc = check_created_attrs(pub_head, priv_head);
 	if (rc)
 		goto out;
@@ -579,7 +578,7 @@ enum pkcs11_rc entry_generate_key_pair(struct pkcs11_client *client,
 	if (rc)
 		goto out;
 
-	/* Generate key pair */
+	/* 生成密钥对 */
 	switch (proc_params->id) {
 	case PKCS11_CKM_EC_EDWARDS_KEY_PAIR_GEN:
 		rc = generate_eddsa_keys(proc_params, &pub_head, &priv_head);
@@ -601,17 +600,16 @@ enum pkcs11_rc entry_generate_key_pair(struct pkcs11_client *client,
 	proc_params = NULL;
 
 	/*
-	 * Object is ready, register it and return a handle.
+	 * 对象已准备就绪，注册它并返回句柄。
 	 */
 	rc = create_object(session, pub_head, &pubkey_handle);
 	if (rc)
 		goto out;
 
 	/*
-	 * Now obj_handle (through the related struct pkcs11_object instance)
-	 * owns the serialized buffer that holds the object attributes.
-	 * We reset local pub_head to NULL to mark that ownership has been
-	 * transferred.
+	 * 现在obj_handle（通过相关的struct pkcs11_object实例）
+	 * 拥有保存对象属性的序列化缓冲区。
+	 * 我们将本地pub_head重置为NULL以标记所有权已转移。
 	 */
 	pub_head = NULL;
 
@@ -619,7 +617,7 @@ enum pkcs11_rc entry_generate_key_pair(struct pkcs11_client *client,
 	if (rc)
 		goto out;
 
-	/* Ownership has been transferred so mark it with NULL */
+	/* 所有权已转移，因此将其标记为NULL */
 	priv_head = NULL;
 
 	hdl_ptr = (uint32_t *)out->memref.buffer;
@@ -649,12 +647,12 @@ out:
 }
 
 /*
- * entry_processing_init - Generic entry for initializing a processing
+ * entry_processing_init - 初始化处理的通用入口
  *
- * @client = client reference
- * @ptype = Invocation parameter types
- * @params = Invocation parameters reference
- * @function - encrypt, decrypt, sign, verify, digest, ...
+ * @client - 客户端引用
+ * @ptype - 调用参数类型
+ * @params - 调用参数引用
+ * @function - 加密、解密、签名、验证、摘要等
  */
 enum pkcs11_rc entry_processing_init(struct pkcs11_client *client,
 				     uint32_t ptypes, TEE_Param *params,
@@ -756,13 +754,13 @@ out_free:
 }
 
 /*
- * entry_processing_step - Generic entry on active processing
+ * entry_processing_step - 活动处理的通用入口
  *
- * @client = client reference
- * @ptype = Invocation parameter types
- * @params = Invocation parameters reference
- * @function - encrypt, decrypt, sign, verify, digest, ...
- * @step - update, oneshot, final
+ * @client - 客户端引用
+ * @ptype - 调用参数类型
+ * @params - 调用参数引用
+ * @function - 加密、解密、签名、验证、摘要等
+ * @step - 更新、一次性、最终
  */
 enum pkcs11_rc entry_processing_step(struct pkcs11_client *client,
 				     uint32_t ptypes, TEE_Param *params,
@@ -859,7 +857,7 @@ out:
 			release_active_processing(session);
 		break;
 	default:
-		/* ONESHOT and FINAL terminates processing on success */
+		/* ONESHOT和FINAL在成功时终止处理 */
 		if (rc != PKCS11_CKR_BUFFER_TOO_SMALL)
 			release_active_processing(session);
 		break;
@@ -909,10 +907,9 @@ enum pkcs11_rc entry_processing_key(struct pkcs11_client *client,
 			return PKCS11_CKR_ARGUMENTS_BAD;
 
 		/*
-		 * Some unwrap mechanisms require encryption to be
-		 * performed on the data passed in proc_params by parent
-		 * key. Hence set operation as PKCS11_FUNCTION_DECRYPT
-		 * to be used with init_symm_operation()
+		 * 某些解包装机制需要由父密钥对proc_params中传递的
+		 * 数据执行加密。因此将操作设置为PKCS11_FUNCTION_DECRYPT
+		 * 以与init_symm_operation()一起使用
 		 */
 		operation = PKCS11_FUNCTION_DECRYPT;
 		break;
@@ -921,10 +918,9 @@ enum pkcs11_rc entry_processing_key(struct pkcs11_client *client,
 			return PKCS11_CKR_ARGUMENTS_BAD;
 
 		/*
-		 * Some derivation mechanism require encryption to be
-		 * performed on the data passed in proc_params by parent
-		 * key. Hence set operation as PKCS11_FUNCTION_ENCRYPT
-		 * to be used with init_symm_operation()
+		 * 某些派生机制需要由父密钥对proc_params中传递的
+		 * 数据执行加密。因此将操作设置为PKCS11_FUNCTION_ENCRYPT
+		 * 以与init_symm_operation()一起使用
 		 */
 		operation = PKCS11_FUNCTION_ENCRYPT;
 		break;
@@ -955,41 +951,41 @@ enum pkcs11_rc entry_processing_key(struct pkcs11_client *client,
 		goto out_free;
 	}
 
-	/* Return error if processing already active */
+	/* 如果处理已经活动则返回错误 */
 	rc = get_ready_session(session);
 	if (rc)
 		goto out_free;
 
-	/* Check parent handle */
+	/* 检查父句柄 */
 	parent = pkcs11_handle2object(parent_handle, session);
 	if (!parent) {
 		rc = PKCS11_CKR_KEY_HANDLE_INVALID;
 		goto out_free;
 	}
 
-	/* Check if mechanism can be used for derivation function */
+	/* 检查机制是否可用于派生功能 */
 	rc = check_mechanism_against_processing(session, proc_params->id,
 						function,
 						PKCS11_FUNC_STEP_INIT);
 	if (rc)
 		goto out_free;
 
-	/* Set the processing state to active */
+	/* 将处理状态设置为活动 */
 	rc = set_processing_state(session, function, parent, NULL);
 	if (rc)
 		goto out_free;
 
 	/*
-	 * Check if base/parent key has CKA_DERIVE set and its key type is
-	 * compatible with the mechanism passed
+	 * 检查基础/父密钥是否设置了CKA_DERIVE，
+	 * 以及其密钥类型是否与传递的机制兼容
 	 */
 	rc = check_parent_attrs_against_processing(proc_params->id, function,
 						   parent->attributes);
 	if (rc) {
 		/*
-		 * CKR_KEY_FUNCTION_NOT_PERMITTED is not in the list of errors
-		 * specified with C_Derive/Unwrap() in the specification. So
-		 * return the next most appropriate error.
+		 * CKR_KEY_FUNCTION_NOT_PERMITTED不在规范中
+		 * C_Derive/Unwrap()指定的错误列表中。
+		 * 因此返回下一个最合适的错误。
 		 */
 		if (rc == PKCS11_CKR_KEY_FUNCTION_NOT_PERMITTED) {
 			if (function == PKCS11_FUNCTION_UNWRAP)
@@ -1001,15 +997,15 @@ enum pkcs11_rc entry_processing_key(struct pkcs11_client *client,
 		goto out;
 	}
 
-	/* Check access of base/parent key */
+	/* 检查基础/父密钥的访问权限 */
 	rc = check_access_attrs_against_token(session, parent->attributes);
 	if (rc)
 		goto out;
 
 	template_size = sizeof(*template) + template->attrs_size;
 	/*
-	 * Prepare a clean initial state for the requested object attributes
-	 * using base/parent key attributes. Free temporary template once done.
+	 * 使用基础/父密钥属性为请求的对象属性准备干净的初始状态。
+	 * 完成后释放临时模板。
 	 */
 	rc = create_attributes_from_template(&head, template, template_size,
 					     parent->attributes,
@@ -1022,7 +1018,7 @@ enum pkcs11_rc entry_processing_key(struct pkcs11_client *client,
 	TEE_Free(template);
 	template = NULL;
 
-	/* check_created_attrs() is called later once key size is known */
+	/* 在知道密钥大小后稍后调用check_created_attrs() */
 
 	rc = check_created_attrs_against_processing(proc_params->id, head);
 	if (rc)
@@ -1101,17 +1097,17 @@ done:
 	proc_params = NULL;
 
 	/*
-	 * Object is ready, register it and return a handle.
+	 * 对象已准备就绪，注册它并返回句柄。
 	 */
 	rc = create_object(session, head, &obj_handle);
 	if (rc)
 		goto out;
 
 	/*
-	 * Now obj_handle (through the related struct pkcs11_object instance)
-	 * owns the serialized buffer that holds the object attributes.
-	 * We reset head to NULL as it is no more the buffer owner and would
-	 * be freed at function out.
+	 * 现在obj_handle（通过相关的struct pkcs11_object实例）
+	 * 拥有保存对象属性的序列化缓冲区。
+	 * 我们将head重置为NULL，因为它不再是缓冲区所有者，
+	 * 并将在函数退出时被释放。
 	 */
 	head = NULL;
 
@@ -1244,10 +1240,9 @@ enum pkcs11_rc entry_wrap_key(struct pkcs11_client *client,
 	}
 
 	/*
-	 * The wrapping key and key to be wrapped shouldn't be same.
-	 * PKCS#11 spec doesn't explicitly state that but logically this isn't
-	 * a use case and also acts as an attack vector, so explicitly
-	 * disallow this.
+	 * 包装密钥和要被包装的密钥不应该是同一个。
+	 * PKCS#11规范没有明确说明这一点，但逻辑上这不是
+	 * 一个用例，也可能成为攻击向量，因此明确禁止这种情况。
 	 */
 	if (key == wrapping_key) {
 		rc = PKCS11_CKR_WRAPPING_KEY_HANDLE_INVALID;
@@ -1258,7 +1253,7 @@ enum pkcs11_rc entry_wrap_key(struct pkcs11_client *client,
 	if (rc)
 		goto out_free;
 
-	/* Check if mechanism can be used for wrapping function */
+	/* 检查机制是否可用于包装功能 */
 	rc = check_mechanism_against_processing(session, proc_params->id,
 						function,
 						PKCS11_FUNC_STEP_INIT);
@@ -1266,16 +1261,16 @@ enum pkcs11_rc entry_wrap_key(struct pkcs11_client *client,
 		goto out;
 
 	/*
-	 * Check if wrapping key has CKA_WRAP set and its key type is
-	 * compatible with the mechanism passed
+	 * 检查包装密钥是否设置了CKA_WRAP，
+	 * 以及其密钥类型是否与传递的机制兼容
 	 */
 	rc = check_parent_attrs_against_processing(proc_params->id, function,
 						   wrapping_key->attributes);
 	if (rc) {
 		/*
-		 * CKR_KEY_FUNCTION_NOT_PERMITTED is not in the list of errors
-		 * specified with C_Wrap() in the specification. So
-		 * return the next most appropriate error.
+		 * CKR_KEY_FUNCTION_NOT_PERMITTED不在规范中
+		 * C_Wrap()指定的错误列表中。
+		 * 因此返回下一个最合适的错误。
 		 */
 		if (rc == PKCS11_CKR_KEY_FUNCTION_NOT_PERMITTED)
 			rc = PKCS11_CKR_WRAPPING_KEY_TYPE_INCONSISTENT;
@@ -1283,7 +1278,7 @@ enum pkcs11_rc entry_wrap_key(struct pkcs11_client *client,
 		goto out;
 	}
 
-	/* Check access of wrapping key */
+	/* 检查包装密钥的访问权限 */
 	rc = check_access_attrs_against_token(session,
 					      wrapping_key->attributes);
 	if (rc)
@@ -1298,7 +1293,7 @@ enum pkcs11_rc entry_wrap_key(struct pkcs11_client *client,
 		goto out;
 	}
 
-	/* Check if key to be wrapped is extractable */
+	/* 检查要被包装的密钥是否可提取 */
 	if (!get_bool(key->attributes, PKCS11_CKA_EXTRACTABLE)) {
 		DMSG("Extractable property is false");
 		rc = PKCS11_CKR_KEY_UNEXTRACTABLE;

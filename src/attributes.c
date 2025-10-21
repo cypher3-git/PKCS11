@@ -404,7 +404,7 @@ enum pkcs11_rc attributes_match_add_reference(struct obj_attrs **head,
 
 #if CFG_TEE_TA_LOG_LEVEL > 0
 /*
- * Debug: dump CK attribute array to output trace
+ * 调试：将 CK 属性数组转储到输出跟踪
  */
 #define ATTR_TRACE_FMT	"%s attr %s / %s\t(0x%04"PRIx32" %"PRIu32"-byte"
 #define ATTR_FMT_0BYTE	ATTR_TRACE_FMT ")"
@@ -421,7 +421,7 @@ static void __trace_attributes(char *prefix, void *src, void *end)
 	size_t prefix_len = strlen(prefix);
 	char *cur = src;
 
-	/* append 4 spaces to the prefix plus terminal '\0' */
+	/* 在前缀后追加 4 个空格加上终止符 '\0' */
 	prefix2 = TEE_Malloc(prefix_len + 1 + 4, TEE_MALLOC_FILL_ZERO);
 	if (!prefix2)
 		return;

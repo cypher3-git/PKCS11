@@ -78,7 +78,7 @@ struct eddsa_processing_ctx {
 };
 
 /*
- * 来自 PKCS11 TA 调用命令的入口点
+ * PKCS11 TA调用命令的入口点
  */
 
 enum pkcs11_rc entry_generate_secret(struct pkcs11_client *client,
@@ -123,7 +123,7 @@ enum pkcs11_rc tee2pkcs_add_attribute(struct obj_attrs **head,
 				      TEE_ObjectHandle tee_obj,
 				      uint32_t tee_id);
 
-/* Asymmetric key operations util */
+/* 非对称密钥操作工具 */
 bool processing_is_tee_asymm(uint32_t proc_id);
 
 enum pkcs11_rc init_asymm_operation(struct pkcs11_session *session,
@@ -189,7 +189,7 @@ enum pkcs11_rc tee_init_gcm_operation(struct pkcs11_session *session,
 
 enum pkcs11_rc tee_ae_reinit_gcm_operation(struct pkcs11_session *session);
 
-/* Digest specific functions */
+/* 摘要特定功能 */
 bool processing_is_tee_digest(enum pkcs11_mechanism_id mecha_id);
 
 enum pkcs11_rc

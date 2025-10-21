@@ -140,13 +140,13 @@ enum pkcs11_rc init_digest_operation(struct pkcs11_session *session,
 }
 
 /*
- * step_digest_operation - processing digest operation step
+ * step_digest_operation - 处理摘要操作步骤
  *
- * @session - current session
- * @step - step ID in the processing (oneshot, update, final)
- * @obj - PKCS#11 object for key based operations
- * @ptype - invocation parameter types
- * @params - invocation parameter references
+ * @session - 当前会话
+ * @step - 处理步骤ID（一次性、更新、最终）
+ * @obj - 基于密钥操作的PKCS#11对象
+ * @ptype - 调用参数类型
+ * @params - 调用参数引用
  */
 enum pkcs11_rc step_digest_operation(struct pkcs11_session *session,
 				     enum processing_step step,
@@ -195,7 +195,7 @@ enum pkcs11_rc step_digest_operation(struct pkcs11_session *session,
 	assert(processing_is_tee_digest(proc->mecha_type));
 
 	/*
-	 * Feed active operation with data
+	 * 向活动操作提供数据
 	 */
 
 	switch (step) {

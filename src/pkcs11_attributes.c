@@ -136,7 +136,7 @@ check_mechanism_against_processing(struct pkcs11_session *session,
 	/*
 	 * 检查从 pkcs11_func2ckfm() 返回的 PKCS11_CKFM_* 标志
 	 * 是否在 mechanism_supported_flags() 返回的标志中。
-		 */
+	 */
 		allowed = mechanism_supported_flags(mechanism_type) &
 			  pkcs11_func2ckfm(function);
 		break;
@@ -206,7 +206,7 @@ check_mechanism_against_processing(struct pkcs11_session *session,
 }
 
 /*
- * Object default boolean attributes as per PKCS#11
+ * 根据 PKCS#11 规范的对象默认布尔属性
  */
 static uint8_t *pkcs11_object_default_boolprop(uint32_t attribute)
 {
@@ -245,9 +245,8 @@ static uint8_t *pkcs11_object_default_boolprop(uint32_t attribute)
 }
 
 /*
- * Object expects several boolean attributes to be set to a default value
- * or to a validate client configuration value. This function append the input
- * attribute (id/size/value) in the serialized object.
+ * 对象期望将多个布尔属性设置为默认值或客户端配置的有效值。
+ * 此函数将输入属性（id/size/value）追加到序列化对象中。
  */
 static enum pkcs11_rc pkcs11_import_object_boolprop(struct obj_attrs **out,
 						    struct obj_attrs *templ,
@@ -316,10 +315,10 @@ static enum pkcs11_rc set_mandatory_attributes(struct obj_attrs **out,
 static enum pkcs11_rc get_default_value(enum pkcs11_attr_id id __maybe_unused,
 					void **value, uint32_t *size)
 {
-	/* should have been taken care of already */
+	/* 布尔属性应该已经被处理过了 */
 	assert(!pkcs11_attr_is_boolean(id));
 
-	/* All other attributes have an empty default value */
+	/* 所有其他属性都有空的默认值 */
 	*value = NULL;
 	*size = 0;
 	return PKCS11_CKR_OK;
@@ -377,15 +376,14 @@ static enum pkcs11_rc set_optional_attributes(struct obj_attrs **out,
 }
 
 /*
- * Below are listed the mandated or optional expected attributes for
- * PKCS#11 storage objects.
+ * 下面列出了 PKCS#11 存储对象的强制或可选属性。
  *
- * Note: boolprops (mandated boolean attributes) PKCS11_CKA_ALWAYS_SENSITIVE,
- * and PKCS11_CKA_NEVER_EXTRACTABLE are set by the token, not provided
- * in the client template.
+ * 注意：布尔属性（强制布尔属性）PKCS11_CKA_ALWAYS_SENSITIVE
+ * 和 PKCS11_CKA_NEVER_EXTRACTABLE 由令牌设置，
+ * 而非在客户端模板中提供。
  */
 
-/* PKCS#11 specification for any object (session/token) of the storage */
+/* PKCS#11 规范：存储中任何对象（会话/令牌）的通用属性 */
 static const uint32_t any_object_boolprops[] = {
 	PKCS11_CKA_TOKEN, PKCS11_CKA_PRIVATE,
 	PKCS11_CKA_MODIFIABLE, PKCS11_CKA_COPYABLE, PKCS11_CKA_DESTROYABLE,
@@ -395,12 +393,12 @@ static const uint32_t any_object_opt_or_null[] = {
 	PKCS11_CKA_LABEL,
 };
 
-/* PKCS#11 specification for raw data object (+any_object_xxx) */
+/* PKCS#11 规范：原始数据对象（+any_object_xxx）*/
 const uint32_t raw_data_opt_or_null[] = {
 	PKCS11_CKA_OBJECT_ID, PKCS11_CKA_APPLICATION, PKCS11_CKA_VALUE,
 };
 
-/* PKCS#11 specification for certificate object (+pkcs11_any_object_xxx) */
+/* PKCS#11 规范：证书对象（+pkcs11_any_object_xxx）*/
 static const uint32_t pkcs11_certificate_mandated[] = {
 	PKCS11_CKA_CERTIFICATE_TYPE,
 };
@@ -413,7 +411,7 @@ static const uint32_t pkcs11_certificate_optional[] = {
 	PKCS11_CKA_CERTIFICATE_CATEGORY, PKCS11_CKA_START_DATE,
 	PKCS11_CKA_END_DATE, PKCS11_CKA_PUBLIC_KEY_INFO,
 #ifdef CFG_PKCS11_TA_CHECK_VALUE_ATTRIBUTE
-	/* Consider KCV attribute only when supported */
+	/* 仅在支持时考虑 KCV 属性 */
 	PKCS11_CKA_CHECK_VALUE,
 #endif
 };
@@ -433,7 +431,7 @@ static const uint32_t pkcs11_x509_certificate_optional[] = {
 	PKCS11_CKA_JAVA_MIDP_SECURITY_DOMAIN, PKCS11_CKA_NAME_HASH_ALGORITHM,
 };
 
-/* PKCS#11 specification for any key object (+any_object_xxx) */
+/* PKCS#11 规范：任何密钥对象（+any_object_xxx）*/
 static const uint32_t any_key_boolprops[] = {
 	PKCS11_CKA_DERIVE,
 };
@@ -447,7 +445,7 @@ static const uint32_t any_key_optional[] = {
 	PKCS11_CKA_ALLOWED_MECHANISMS,
 };
 
-/* PKCS#11 specification for any symmetric key (+any_key_xxx) */
+/* PKCS#11 规范：任何对称密钥（+any_key_xxx）*/
 static const uint32_t symm_key_boolprops[] = {
 	PKCS11_CKA_ENCRYPT, PKCS11_CKA_DECRYPT,
 	PKCS11_CKA_SIGN, PKCS11_CKA_VERIFY,
@@ -464,12 +462,12 @@ static const uint32_t symm_key_opt_or_null[] = {
 static const uint32_t symm_key_optional[] = {
 	PKCS11_CKA_VALUE_LEN,
 #ifdef CFG_PKCS11_TA_CHECK_VALUE_ATTRIBUTE
-	/* Consider KCV attribute only when supported */
+	/* 仅在支持时考虑 KCV 属性 */
 	PKCS11_CKA_CHECK_VALUE,
 #endif
 };
 
-/* PKCS#11 specification for any asymmetric public key (+any_key_xxx) */
+/* PKCS#11 规范：任何非对称公钥（+any_key_xxx）*/
 static const uint32_t public_key_boolprops[] = {
 	PKCS11_CKA_ENCRYPT, PKCS11_CKA_VERIFY, PKCS11_CKA_VERIFY_RECOVER,
 	PKCS11_CKA_WRAP,
@@ -484,7 +482,7 @@ static const uint32_t public_key_opt_or_null[] = {
 	PKCS11_CKA_PUBLIC_KEY_INFO,
 };
 
-/* PKCS#11 specification for any asymmetric private key (+any_key_xxx) */
+/* PKCS#11 规范：任何非对称私钥（+any_key_xxx）*/
 static const uint32_t private_key_boolprops[] = {
 	PKCS11_CKA_DECRYPT, PKCS11_CKA_SIGN, PKCS11_CKA_SIGN_RECOVER,
 	PKCS11_CKA_UNWRAP,
@@ -500,7 +498,7 @@ static const uint32_t private_key_opt_or_null[] = {
 	PKCS11_CKA_PUBLIC_KEY_INFO,
 };
 
-/* PKCS#11 specification for any RSA key (+public/private_key_xxx) */
+/* PKCS#11 规范：任何 RSA 密钥（+public/private_key_xxx）*/
 static const uint32_t rsa_pub_key_gen_mand[] = {
 	PKCS11_CKA_MODULUS_BITS,
 };
@@ -520,7 +518,7 @@ static const uint32_t rsa_priv_key_opt_or_null[] = {
 	PKCS11_CKA_EXPONENT_1, PKCS11_CKA_EXPONENT_2, PKCS11_CKA_COEFFICIENT,
 };
 
-/* PKCS#11 specification for any EC key (+public/private_key_xxx) */
+/* PKCS#11 规范：任何 EC 密钥（+public/private_key_xxx）*/
 static const uint32_t ec_public_key_mandated[] = {
 	PKCS11_CKA_EC_PARAMS,
 };
@@ -553,7 +551,7 @@ static enum pkcs11_rc create_storage_attributes(struct obj_attrs **out,
 	if (rc)
 		return rc;
 
-	/* Object class is mandatory */
+	/* 对象类别是强制性的 */
 	class = get_class(temp);
 	if (class == PKCS11_CKO_UNDEFINED_ID) {
 		EMSG("Class attribute not found");
@@ -734,7 +732,7 @@ static enum pkcs11_rc create_certificate_attributes(struct obj_attrs **out,
 	rc = get_attribute_ptr(*out, PKCS11_CKA_CERTIFICATE_CATEGORY,
 			       &attr_value, &attr_size);
 	if (rc == PKCS11_CKR_OK && attr_size == sizeof(cert_category)) {
-		/* Sanitize certificate category */
+		/* 清理证书类别 */
 		TEE_MemMove(&cert_category, attr_value, sizeof(cert_category));
 
 		switch (cert_category) {
@@ -757,7 +755,7 @@ static enum pkcs11_rc create_certificate_attributes(struct obj_attrs **out,
 		if (rc)
 			return rc;
 	} else {
-		/* All other cases are errors */
+		/* 所有其他情况都是错误 */
 		EMSG("Invalid certificate category");
 
 		return PKCS11_CKR_TEMPLATE_INCONSISTENT;
@@ -767,7 +765,7 @@ static enum pkcs11_rc create_certificate_attributes(struct obj_attrs **out,
 	rc = get_attribute_ptr(*out, PKCS11_CKA_NAME_HASH_ALGORITHM, NULL,
 			       &attr_size);
 	if (rc == PKCS11_CKR_OK && attr_size == sizeof(uint32_t)) {
-		/* We accept any algorithm what caller wanted to specify */
+		/* 我们接受调用者想要指定的任何算法 */
 	} else if (rc == PKCS11_RV_NOT_FOUND) {
 		/* 缺失时设置默认哈希算法 */
 		rc = set_attribute(out, PKCS11_CKA_NAME_HASH_ALGORITHM,
@@ -776,7 +774,7 @@ static enum pkcs11_rc create_certificate_attributes(struct obj_attrs **out,
 		if (rc)
 			return rc;
 	} else {
-		/* All other cases are errors */
+		/* 所有其他情况都是错误 */
 		EMSG("Invalid name hash algorithm");
 
 		return PKCS11_CKR_TEMPLATE_INCONSISTENT;
@@ -872,7 +870,7 @@ create_pub_key_rsa_generated_attributes(struct obj_attrs **out,
 	if (function != PKCS11_FUNCTION_IMPORT)
 		return PKCS11_CKR_OK;
 
-	/* Calculate CKA_MODULUS_BITS */
+	/* 计算 CKA_MODULUS_BITS */
 
 	if (get_attribute_ptr(temp, PKCS11_CKA_MODULUS,
 			      &a_ptr, &a_size) || !a_ptr) {
@@ -1001,10 +999,9 @@ create_ec_priv_key_hidden_attributes(struct obj_attrs **out,
 		return PKCS11_CKR_OK;
 
 	/*
-	 * TEE internal API requires that for private key operations there
-	 * needs to be also public key available.
+	 * TEE 内部 API 要求对于私钥操作，还需要有公钥可用。
 	 *
-	 * Generate hidden EC point from private key.
+	 * 从私钥生成隐藏的 EC 点。
 	 */
 
 	if (get_attribute_ptr(temp, PKCS11_CKA_EC_PARAMS,
@@ -1013,7 +1010,7 @@ create_ec_priv_key_hidden_attributes(struct obj_attrs **out,
 		return PKCS11_CKR_ATTRIBUTE_TYPE_INVALID;
 	}
 
-	/* Just valdiate that curve is found */
+	/* 只验证找到了曲线 */
 	tee_size = ec_params2tee_keysize(a_ptr, a_size);
 	if (!tee_size) {
 		EMSG("Unsupported EC_PARAMS curve");
@@ -1119,7 +1116,7 @@ create_ec_priv_key_hidden_attributes(struct obj_attrs **out,
 		goto out;
 	}
 
-	/* Note: ASN.1 writing works backwards */
+	/* 注意：ASN.1 写入是反向的 */
 	ptr = asnbuf + asnbuflen;
 
 	ret = mbedtls_asn1_write_octet_string(&ptr, asnbuf, buf, buflen);
@@ -1183,7 +1180,7 @@ sanitize_symm_key_attributes(struct obj_attrs **temp,
 	case PKCS11_CKK_SHA224_HMAC:
 		switch (function) {
 		case PKCS11_FUNCTION_IMPORT:
-			/* CKA_VALUE is a mandatory with C_CreateObject */
+			/* CKA_VALUE 在 C_CreateObject 中是强制性的 */
 			if (rc || a_size == 0)
 				return PKCS11_CKR_TEMPLATE_INCONSISTENT;
 
@@ -1216,17 +1213,17 @@ sanitize_symm_key_attributes(struct obj_attrs **temp,
  * 用于对象生成函数（生成、复制、派生等）。
  *
  * 关于提供的模板和预期返回值的 PKCS#11 指令：
- * - template has an invalid attribute ID: ATTRIBUTE_TYPE_INVALID
- * - template has an invalid value for an attribute: ATTRIBUTE_VALID_INVALID
- * - template has value for a read-only attribute: ATTRIBUTE_READ_ONLY
- * - template+default+parent => still miss an attribute: TEMPLATE_INCONSISTENT
+ * - 模板有无效的属性 ID：ATTRIBUTE_TYPE_INVALID
+ * - 模板的属性值无效：ATTRIBUTE_VALID_INVALID
+ * - 模板包含只读属性的值：ATTRIBUTE_READ_ONLY
+ * - 模板+默认值+父对象 => 仍然缺少属性：TEMPLATE_INCONSISTENT
  *
- * INFO on PKCS11_CMD_COPY_OBJECT:
- * - parent PKCS11_CKA_COPYIABLE=false => return ACTION_PROHIBITED.
- * - template can specify PKCS11_CKA_TOKEN, PKCS11_CKA_PRIVATE,
- *   PKCS11_CKA_MODIFIABLE, PKCS11_CKA_DESTROYABLE.
- * - SENSITIVE can change from false to true, not from true to false.
- * - LOCAL is the parent LOCAL
+ * PKCS11_CMD_COPY_OBJECT 的信息：
+ * - 父对象 PKCS11_CKA_COPYIABLE=false => 返回 ACTION_PROHIBITED。
+ * - 模板可以指定 PKCS11_CKA_TOKEN、PKCS11_CKA_PRIVATE、
+ *   PKCS11_CKA_MODIFIABLE、PKCS11_CKA_DESTROYABLE。
+ * - SENSITIVE 可以从 false 变为 true，但不能从 true 变为 false。
+ * - LOCAL 是父对象的 LOCAL
  */
 enum pkcs11_rc
 create_attributes_from_template(struct obj_attrs **out, void *template,
@@ -1267,10 +1264,9 @@ create_attributes_from_template(struct obj_attrs **out, void *template,
 #endif
 
 	/*
-	 * For PKCS11_FUNCTION_GENERATE, find the class and type
-	 * based on the mechanism. These will be passed as hint
-	 * sanitize_client_object() and added in temp if not
-	 * already present
+	 * 对于 PKCS11_FUNCTION_GENERATE，根据机制找到类别和类型。
+	 * 这些将作为提示传递给 sanitize_client_object()，
+	 * 如果尚未存在，则添加到 temp 中
 	 */
 	if (function == PKCS11_FUNCTION_GENERATE) {
 		switch (mecha) {
@@ -1288,10 +1284,9 @@ create_attributes_from_template(struct obj_attrs **out, void *template,
 	}
 
 	/*
-	 * For PKCS11_FUNCTION_GENERATE_PAIR, find the class and type
-	 * based on the mechanism. These will be passed as hint
-	 * sanitize_client_object() and added in temp if not
-	 * already present
+	 * 对于 PKCS11_FUNCTION_GENERATE_PAIR，根据机制找到类别和类型。
+	 * 这些将作为提示传递给 sanitize_client_object()，
+	 * 如果尚未存在，则添加到 temp 中
 	 */
 	if (function == PKCS11_FUNCTION_GENERATE_PAIR) {
 		switch (mecha) {
@@ -1321,9 +1316,8 @@ create_attributes_from_template(struct obj_attrs **out, void *template,
 		goto out;
 
 	/*
-	 * For function type modify and copy return the created template
-	 * from here. Rest of the code below is for creating objects
-	 * or generating keys.
+	 * 对于修改和复制类型的函数，从这里返回创建的模板。
+	 * 下面的其余代码用于创建对象或生成密钥。
 	 */
 	switch (function) {
 	case PKCS11_FUNCTION_MODIFY:
@@ -1402,11 +1396,9 @@ create_attributes_from_template(struct obj_attrs **out, void *template,
 	}
 
 	/*
-	 * TBD - Add a check to see if temp contains any attribute which
-	 * is not consistent with the object class or type and return error.
-	 * In current implementation such attributes are ignored and not
-	 * added to final object while PKCS#11 specification expects a
-	 * failure and an error code be returned.
+	 * 待办 - 添加检查以查看 temp 是否包含与对象类别或类型不一致的属性并返回错误。
+	 * 在当前实现中，这些属性被忽略且不添加到最终对象，
+	 * 而 PKCS#11 规范期望失败并返回错误代码。
 	 */
 
 	switch (get_class(temp)) {
@@ -1699,8 +1691,7 @@ check_created_attrs_against_processing(uint32_t proc_id,
 				       struct obj_attrs *head __maybe_unused)
 {
 	/*
-	 * Processings that do not create secrets are not expected to call
-	 * this function which would panic.
+	 * 不创建密钥的处理不应调用此函数，否则会触发 panic。
 	 */
 	switch (proc_id) {
 	case PKCS11_PROCESSING_IMPORT:
@@ -1861,7 +1852,7 @@ enum pkcs11_rc check_created_attrs(struct obj_attrs *key1,
 			return PKCS11_CKR_TEMPLATE_INCONSISTENT;
 		}
 
-		/* Get key size */
+		/* 获取密钥大小 */
 		rc = get_u32_attribute(secret, PKCS11_CKA_VALUE_LEN,
 				       &key_length);
 		if (rc)
@@ -1870,7 +1861,7 @@ enum pkcs11_rc check_created_attrs(struct obj_attrs *key1,
 	if (public) {
 		switch (get_key_type(public)) {
 		case PKCS11_CKK_RSA:
-			/* Get key size */
+			/* 获取密钥大小 */
 			rc = get_u32_attribute(public, PKCS11_CKA_MODULUS_BITS,
 					       &key_length);
 			if (rc)
@@ -1896,8 +1887,8 @@ enum pkcs11_rc check_created_attrs(struct obj_attrs *key1,
 	}
 
 	/*
-	 * Check key size for symmetric keys and RSA keys
-	 * EC is bound to domains, no need to check here.
+	 * 检查对称密钥和 RSA 密钥的密钥大小
+	 * EC 绑定到域，无需在此检查。
 	 */
 	switch (get_key_type(key1)) {
 	case PKCS11_CKK_EC:
@@ -1923,7 +1914,7 @@ enum pkcs11_rc check_created_attrs(struct obj_attrs *key1,
 	return PKCS11_CKR_OK;
 }
 
-/* Check processing ID against attribute ALLOWED_MECHANISMS if any */
+/* 根据属性 ALLOWED_MECHANISMS（如有）检查处理 ID */
 static bool parent_key_complies_allowed_processings(uint32_t proc_id,
 						    struct obj_attrs *head)
 {
@@ -1990,7 +1981,7 @@ check_parent_attrs_against_processing(enum pkcs11_mechanism_id proc_id,
 		return PKCS11_CKR_KEY_FUNCTION_NOT_PERMITTED;
 	}
 
-	/* Check processing complies with parent key family */
+	/* 检查处理是否符合父密钥类型 */
 	switch (proc_id) {
 	case PKCS11_CKM_AES_ECB:
 	case PKCS11_CKM_AES_CBC:
@@ -2021,11 +2012,9 @@ check_parent_attrs_against_processing(enum pkcs11_mechanism_id proc_id,
 
 		if (get_bool(head, PKCS11_CKA_ENCRYPT)) {
 			/*
-			 * Intentionally refuse to proceed despite
-			 * PKCS#11 specifications v2.40 and v3.0 not expecting
-			 * this behavior to avoid potential security issue
-			 * where keys derived by these mechanisms can be
-			 * revealed by doing data encryption using parent key.
+			 * 尽管 PKCS#11 规范 v2.40 和 v3.0 不期望此行为，
+			 * 但故意拒绝继续，以避免潜在的安全问题，
+			 * 即通过使用父密钥进行数据加密可能会泄露由这些机制派生的密钥。
 			 */
 			return PKCS11_CKR_FUNCTION_FAILED;
 		}
@@ -2237,14 +2226,14 @@ static bool attr_is_modifiable_secret_key(struct pkcs11_attribute_head *attr,
 	case PKCS11_CKA_UNWRAP:
 	case PKCS11_CKA_CHECK_VALUE:
 		return true;
-	/* Can't be modified once set to CK_FALSE - 12 in Table 10 */
+	/* 一旦设置为 CK_FALSE 就不能修改 - 表 10 中的 12 */
 	case PKCS11_CKA_EXTRACTABLE:
 		return get_bool(obj->attributes, attr->id);
-	/* Can't be modified once set to CK_TRUE - 11 in Table 10 */
+	/* 一旦设置为 CK_TRUE 就不能修改 - 表 10 中的 11 */
 	case PKCS11_CKA_SENSITIVE:
 	case PKCS11_CKA_WRAP_WITH_TRUSTED:
 		return !get_bool(obj->attributes, attr->id);
-	/* Change in CKA_TRUSTED can only be done by SO */
+	/* CKA_TRUSTED 的更改只能由 SO 执行 */
 	case PKCS11_CKA_TRUSTED:
 		return pkcs11_session_is_so(session);
 	case PKCS11_CKA_NEVER_EXTRACTABLE:
@@ -2267,7 +2256,7 @@ static bool attr_is_modifiable_public_key(struct pkcs11_attribute_head *attr,
 	case PKCS11_CKA_WRAP:
 		return true;
 	case PKCS11_CKA_TRUSTED:
-		/* Change in CKA_TRUSTED can only be done by SO */
+		/* CKA_TRUSTED 的更改只能由 SO 执行 */
 		return pkcs11_session_is_so(session);
 	default:
 		return false;
@@ -2295,10 +2284,10 @@ static bool attr_is_modifiable_private_key(struct pkcs11_attribute_head *attr,
 	 */
 	case PKCS11_CKA_PUBLIC_KEY_INFO:
 		return true;
-	/* Can't be modified once set to CK_FALSE - 12 in Table 10 */
+	/* 一旦设置为 CK_FALSE 就不能修改 - 表 10 中的 12 */
 	case PKCS11_CKA_EXTRACTABLE:
 		return get_bool(obj->attributes, attr->id);
-	/* Can't be modified once set to CK_TRUE - 11 in Table 10 */
+	/* 一旦设置为 CK_TRUE 就不能修改 - 表 10 中的 11 */
 	case PKCS11_CKA_SENSITIVE:
 	case PKCS11_CKA_WRAP_WITH_TRUSTED:
 		return !get_bool(obj->attributes, attr->id);
@@ -2318,13 +2307,13 @@ static bool attr_is_modifiable_certificate(struct pkcs11_attribute_head *attr,
 	uint32_t boolsize = 0;
 	enum pkcs11_rc rc = PKCS11_CKR_GENERAL_ERROR;
 
-	/* Trusted certificates cannot be modified. */
+	/* 受信任的证书不能被修改。 */
 	rc = get_attribute(obj->attributes, PKCS11_CKA_TRUSTED,
 			   &boolval, &boolsize);
 	if (rc || boolval == PKCS11_TRUE)
 		return false;
 
-	/* Common certificate attributes */
+	/* 通用证书属性 */
 	switch (attr->id) {
 	case PKCS11_CKA_TRUSTED:
 		/*
@@ -2340,7 +2329,7 @@ static bool attr_is_modifiable_certificate(struct pkcs11_attribute_head *attr,
 		break;
 	}
 
-	/* Certificate type specific attributes */
+	/* 证书类型特定属性 */
 	switch (get_certificate_type(obj->attributes)) {
 	case PKCS11_CKC_X_509:
 		/*
@@ -2357,7 +2346,7 @@ static bool attr_is_modifiable_certificate(struct pkcs11_attribute_head *attr,
 		}
 		break;
 	default:
-		/* Unsupported certificate type */
+		/* 不支持的证书类型 */
 		break;
 	}
 
@@ -2370,7 +2359,7 @@ static bool attribute_is_modifiable(struct pkcs11_session *session,
 				    enum pkcs11_class_id class,
 				    enum processing_func function)
 {
-	/* Check modifiable attributes common to any object */
+	/* 检查任何对象通用的可修改属性 */
 	switch (req_attr->id) {
 	case PKCS11_CKA_LABEL:
 		return true;
@@ -2381,18 +2370,16 @@ static bool attribute_is_modifiable(struct pkcs11_session *session,
 		return function == PKCS11_FUNCTION_COPY;
 	case PKCS11_CKA_COPYABLE:
 		/*
-		 * Specification mentions that if the attribute value is false
-		 * it can't be set to true. Reading this we assume that it
-		 * should be possible to modify this attribute even though this
-		 * is not marked as modifiable in Table 10 if done in right
-		 * direction i.e from TRUE -> FALSE.
+		 * 规范提到，如果属性值为 false，则不能将其设置为 true。
+		 * 据此我们假设，即使在表 10 中未标记为可修改，
+		 * 如果方向正确（即从 TRUE -> FALSE），也应该可以修改此属性。
 		 */
 		return get_bool(obj->attributes, req_attr->id);
 	default:
 		break;
 	}
 
-	/* Attribute checking based on class type */
+	/* 基于类别类型的属性检查 */
 	switch (class) {
 	case PKCS11_CKO_SECRET_KEY:
 	case PKCS11_CKO_PUBLIC_KEY:
@@ -2410,7 +2397,7 @@ static bool attribute_is_modifiable(struct pkcs11_session *session,
 			return true;
 		break;
 	case PKCS11_CKO_DATA:
-		/* None of the data object attributes are modifiable */
+		/* 数据对象的所有属性都不可修改 */
 		return false;
 	case PKCS11_CKO_CERTIFICATE:
 		return attr_is_modifiable_certificate(req_attr, session, obj);
@@ -2437,41 +2424,38 @@ enum pkcs11_rc check_attrs_against_modification(struct pkcs11_session *session,
 	end = cur + head->attrs_size;
 
 	for (; cur < end; cur += len) {
-		/* Structure aligned copy of the pkcs11_ref in the object */
+		/* 对象中 pkcs11_ref 的结构对齐副本 */
 		struct pkcs11_attribute_head cli_ref = { };
 
 		TEE_MemMove(&cli_ref, cur, sizeof(cli_ref));
 		len = sizeof(cli_ref) + cli_ref.size;
 
-		/* Protect hidden attributes */
+		/* 保护隐藏属性 */
 		if (attribute_is_hidden(&cli_ref))
 			return PKCS11_CKR_ATTRIBUTE_TYPE_INVALID;
 
 		/*
-		 * Check 1 - Check if attribute belongs to the object
-		 * The obj->attributes has all the attributes in
-		 * it which are allowed for an object.
+		 * 检查 1 - 检查属性是否属于该对象
+		 * obj->attributes 包含对象允许的所有属性。
 		 */
 		if (get_attribute_ptr(obj->attributes, cli_ref.id, NULL,
 				      NULL) == PKCS11_RV_NOT_FOUND)
 			return PKCS11_CKR_ATTRIBUTE_TYPE_INVALID;
 
-		/* Check 2 - Is attribute modifiable */
+		/* 检查 2 - 属性是否可修改 */
 		if (!attribute_is_modifiable(session, &cli_ref, obj, class,
 					     function))
 			return PKCS11_CKR_ATTRIBUTE_READ_ONLY;
 
 		/*
-		 * Checks for modification in PKCS11_CKA_TOKEN and
-		 * PKCS11_CKA_PRIVATE are required for PKCS11_FUNCTION_COPY
-		 * only, so skip them for PKCS11_FUNCTION_MODIFY.
+		 * PKCS11_CKA_TOKEN 和 PKCS11_CKA_PRIVATE 的修改检查
+		 * 仅对 PKCS11_FUNCTION_COPY 需要，因此对 PKCS11_FUNCTION_MODIFY 跳过。
 		 */
 		if (function == PKCS11_FUNCTION_MODIFY)
 			continue;
 
 		/*
-		 * An attempt to copy an object to a token will fail for
-		 * RO session
+		 * 对于只读会话，尝试将对象复制到令牌将失败
 		 */
 		if (cli_ref.id == PKCS11_CKA_TOKEN &&
 		    get_bool(head, PKCS11_CKA_TOKEN)) {
@@ -2487,8 +2471,8 @@ enum pkcs11_rc check_attrs_against_modification(struct pkcs11_session *session,
 			bool obj_priv = get_bool(head, cli_ref.id);
 
 			/*
-			 * If PKCS11_CKA_PRIVATE is being set to TRUE from
-			 * FALSE, user has to be logged in
+			 * 如果 PKCS11_CKA_PRIVATE 从 FALSE 设置为 TRUE，
+			 * 用户必须已登录
 			 */
 			if (!parent_priv && obj_priv) {
 				if ((pkcs11_session_is_public(session) ||
@@ -2497,8 +2481,7 @@ enum pkcs11_rc check_attrs_against_modification(struct pkcs11_session *session,
 			}
 
 			/*
-			 * Restriction added - Even for Copy, do not allow
-			 * modification of CKA_PRIVATE from TRUE to FALSE
+			 * 添加限制 - 即使对于复制，也不允许将 CKA_PRIVATE 从 TRUE 修改为 FALSE
 			 */
 			if (parent_priv && !obj_priv)
 				return PKCS11_CKR_TEMPLATE_INCONSISTENT;
@@ -2515,7 +2498,7 @@ static enum pkcs11_rc set_secret_key_data(struct obj_attrs **head, void *data,
 	uint32_t key_length = 0;
 	enum pkcs11_rc rc = PKCS11_CKR_GENERAL_ERROR;
 
-	/* Get key size if present in template */
+	/* 如果模板中存在，则获取密钥大小 */
 	rc = get_attribute(*head, PKCS11_CKA_VALUE_LEN, &key_length, &size);
 	if (rc && rc != PKCS11_RV_NOT_FOUND)
 		return rc;
@@ -2526,17 +2509,17 @@ static enum pkcs11_rc set_secret_key_data(struct obj_attrs **head, void *data,
 	} else {
 		key_length = key_size;
 		rc = set_attribute(head, PKCS11_CKA_VALUE_LEN, &key_length,
-				   sizeof(uint32_t));
+			sizeof(uint32_t));
 		if (rc)
 			return rc;
 	}
 
-	/* Now we can check the VALUE_LEN field */
+	/* 现在我们可以检查 VALUE_LEN 字段 */
 	rc = check_created_attrs(*head, NULL);
 	if (rc)
 		return rc;
 
-	/* Remove the default empty value attribute if found */
+	/* 如果找到，则删除默认的空值属性 */
 	rc = remove_empty_attribute(head, PKCS11_CKA_VALUE);
 	if (rc != PKCS11_CKR_OK && rc != PKCS11_RV_NOT_FOUND)
 		return PKCS11_CKR_GENERAL_ERROR;
@@ -2890,15 +2873,15 @@ enum pkcs11_rc add_missing_attribute_id(struct obj_attrs **pub_head,
 		id2 = NULL;
 	}
 
-	/* Both have value -- let them be what caller has specified them */
+	/* 两者都有值 -- 让它们保持调用者指定的值 */
 	if (id1 && id2)
 		return PKCS11_CKR_OK;
 
-	/* Both are empty -- leave empty values */
+	/* 两者都为空 -- 保留空值 */
 	if (!id1 && !id2)
 		return PKCS11_CKR_OK;
 
-	/* Cross copy CKA_ID value */
+	/* 交叉复制 CKA_ID 值 */
 	if (id1)
 		return set_attribute(priv_head, PKCS11_CKA_ID, id1, id1_size);
 	else
@@ -2906,8 +2889,7 @@ enum pkcs11_rc add_missing_attribute_id(struct obj_attrs **pub_head,
 }
 
 /*
- * The key check value is derived from the object by taking the first
- * three bytes of the SHA-1 hash of the object's CKA_VALUE attribute.
+ * 密钥检查值是通过取对象 CKA_VALUE 属性的 SHA-1 哈希的前三个字节派生的。
  */
 static enum pkcs11_rc compute_check_value_with_sha1(void *key,
 						    uint32_t key_size,
@@ -2947,10 +2929,10 @@ out:
 }
 
 /*
- * The key check value that is calculated as follows:
- * 1) Take a buffer of the cipher block size of binary zeros (0x00).
- * 2) Encrypt this block in ECB mode.
- * 3) Take the first three bytes of cipher text as the check value.
+ * 密钥检查值的计算方法如下：
+ * 1) 取一个密码块大小的二进制零（0x00）缓冲区。
+ * 2) 在 ECB 模式下加密此块。
+ * 3) 取密文的前三个字节作为检查值。
  */
 static enum pkcs11_rc compute_check_value_with_ecb(void *key, uint32_t key_size,
 						   void *kcv)
@@ -3023,20 +3005,19 @@ enum pkcs11_rc set_check_value_attr(struct obj_attrs **head)
 	case PKCS11_CKO_CERTIFICATE:
 		break;
 	default:
-		/* Nothing to do */
+		/* 无需操作 */
 		return PKCS11_CKR_OK;
 	}
 
-	/* Check whether CKA_CHECK_VALUE has been provided in the template */
+	/* 检查模板中是否提供了 CKA_CHECK_VALUE */
 	rc = get_attribute_ptr(*head, PKCS11_CKA_CHECK_VALUE, &kcv2, &kcv2_len);
 
 	if (rc != PKCS11_CKR_OK && rc != PKCS11_RV_NOT_FOUND)
 		return PKCS11_CKR_GENERAL_ERROR;
 
 	/*
-	 * The generation of the KCV may be prevented by the application
-	 * supplying the attribute in the template as a no-value (0 length)
-	 * entry.
+	 * 应用程序可以通过在模板中提供无值（0 长度）条目的属性
+	 * 来阻止生成 KCV。
 	 */
 	if (rc == PKCS11_CKR_OK && !kcv2_len)
 		return PKCS11_CKR_OK;
@@ -3044,7 +3025,7 @@ enum pkcs11_rc set_check_value_attr(struct obj_attrs **head)
 	if (rc == PKCS11_CKR_OK && kcv2_len != PKCS11_CKA_CHECK_VALUE_SIZE)
 		return PKCS11_CKR_ATTRIBUTE_VALUE_INVALID;
 
-	/* Get key CKA_VALUE */
+	/* 获取密钥 CKA_VALUE */
 	rc = get_attribute_ptr(*head, PKCS11_CKA_VALUE, &val, &val_len);
 	if (rc)
 		return rc;
@@ -3075,11 +3056,11 @@ enum pkcs11_rc set_check_value_attr(struct obj_attrs **head)
 		return rc;
 
 	/*
-	 * If the computed KCV does not match the provided one
-	 * then return CKR_ATTRIBUTE_VALUE_INVALID
+	 * 如果计算的 KCV 与提供的不匹配，
+	 * 则返回 CKR_ATTRIBUTE_VALUE_INVALID
 	 */
 	if (kcv2_len) {
-		/* Provided KCV value shall match the computed one */
+		/* 提供的 KCV 值应与计算的值匹配 */
 		if (TEE_MemCompare(kcv2, kcv, PKCS11_CKA_CHECK_VALUE_SIZE))
 			rc = PKCS11_CKR_ATTRIBUTE_VALUE_INVALID;
 	} else {

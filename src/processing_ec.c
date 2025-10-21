@@ -310,9 +310,9 @@ static const uint8_t secp521r1_oid_der[] = {
 };
 
 /*
- * Edwards curves may be specified in two flavours:
- * - as a PrintableString 'edwards25519' or 'edwards448'
- * - as an OID, DER encoded ASN.1 Object
+ * Edwards曲线可以用两种方式指定：
+ * - 作为PrintableString 'edwards25519'或'edwards448'
+ * - 作为OID，DER编码的ASN.1对象
  */
 
 static const uint8_t ed25519_name_der[] = {
@@ -388,9 +388,8 @@ size_t ec_params2tee_keysize(void *ec_params, size_t size)
 }
 
 /*
- * This function intentionally panics if the curve is not found.
- * Use ec_params2tee_keysize() to check the curve is supported by
- * the internal core API.
+ * 如果未找到曲线，此函数会故意触发panic。
+ * 使用ec_params2tee_keysize()检查内部核心API是否支持该曲线。
  */
 uint32_t ec_params2tee_curve(void *ec_params, size_t size)
 {
@@ -453,10 +452,10 @@ enum pkcs11_rc load_tee_ec_key_attrs(TEE_Attribute **tee_attrs,
 			count++;
 
 		/*
-		 * Standard does not have CKA_EC_POINT for EC private keys
-		 * but that is required by TEE internal API. First try to get
-		 * hidden EC POINT and for backwards compatibility then try to
-		 * get CKA_EC_POINT value.
+		 * 标准中EC私钥没有CKA_EC_POINT属性，
+		 * 但TEE内部API需要它。首先尝试获取
+		 * 隐藏的EC POINT，为了向后兼容再尝试获取
+		 * CKA_EC_POINT值。
 		 */
 
 		if (pkcs2tee_load_attr(&attrs[count],
@@ -514,8 +513,8 @@ enum pkcs11_rc pkcs2tee_algo_ecdsa(uint32_t *tee_id,
 	}
 
 	/*
-	 * TODO: Fixing this in a way to support also other EC curves would
-	 * require OP-TEE to be updated for newer version of GlobalPlatform API
+	 * 待办：要以支持其他 EC 曲线的方式修复此问题，
+	 * 需要将 OP-TEE 更新到更新版本的 GlobalPlatform API
 	 */
 	switch (get_object_key_bit_size(obj)) {
 	case 192:
@@ -628,10 +627,10 @@ static enum pkcs11_rc tee2pkcs_ec_attributes(struct obj_attrs **pub_head,
 	TEE_MemMove(ecpoint + hsize + psize + poffset, y_ptr, y_size);
 
 	/*
-	 * Add PKCS11_CKA_OPTEE_HIDDEN_EC_POINT to private key object and
-	 * standard PKCS11_CKA_EC_POINT to public key objects as
-	 * TEE_PopulateTransientObject requires public x/y values
-	 * for TEE_TYPE_ECDSA_KEYPAIR.
+	 * 将PKCS11_CKA_OPTEE_HIDDEN_EC_POINT添加到私钥对象，
+	 * 将标准的PKCS11_CKA_EC_POINT添加到公钥对象，
+	 * 因为TEE_PopulateTransientObject需要公钥x/y值
+	 * 用于TEE_TYPE_ECDSA_KEYPAIR。
 	 */
 	rc = add_attribute(priv_head, PKCS11_CKA_OPTEE_HIDDEN_EC_POINT,
 			   ecpoint, dersize);
@@ -998,7 +997,7 @@ enum pkcs11_rc pkcs2tee_algo_ecdh(uint32_t *tee_id,
 	if (rc)
 		return rc;
 
-	/* Remaining arguments are extracted by pkcs2tee_param_ecdh */
+	/* 其余参数由 pkcs2tee_param_ecdh 提取 */
 	if (kdf != PKCS11_CKD_NULL) {
 		DMSG("Only support CKD_NULL key derivation for ECDH");
 		return PKCS11_CKR_MECHANISM_PARAM_INVALID;
